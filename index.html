@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>N-ZONE Guard | SAN Zoning Assistant</title>
+<style>
+:root{
+  --bg:#f3f4f6;
+  --panel:#ffffff;
+  --panel-2:#f8f8f9;
+  --panel-3:#f0f1f3;
+  --text:#202329;
+  --muted:#747a83;
+  --muted-2:#9499a1;
+  --accent:#30343a;
+  --accent-2:#4b5159;
+  --accent-3:#626973;
+  --accent-soft:#eceef1;
+  --line:#e0e2e6;
+  --line-strong:#d2d5da;
+  --ok:#287653;
+  --ok-bg:#eaf4ef;
+  --warn:#a66b13;
+  --warn-bg:#fbf1df;
+  --bad:#ad4242;
+  --bad-bg:#f9eaea;
+  --info:#566270;
+  --info-bg:#edf0f3;
+  --shadow:0 14px 38px rgba(27,31,36,.065);
+  --shadow-soft:0 8px 24px rgba(27,31,36,.045);
+  --radius:18px;
+  --radius-sm:12px;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;font-family:Inter,"Pretendard","Noto Sans KR",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(180deg,#f1f2f4 0,#f7f7f8 45%,#f3f4f6 100%);color:var(--text)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{min-height:100vh;display:grid;grid-template-columns:264px minmax(0,1fr)}
+.sidebar{position:sticky;top:0;height:100vh;padding:25px 18px;background:#272a2f;color:white;display:flex;flex-direction:column;border-right:1px solid #34383e;z-index:4}
+.brand{display:flex;gap:12px;align-items:center;padding:2px 8px 24px}
+.brandMark{width:43px;height:43px;border-radius:13px;background:#f1f2f4;display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)}
+.brandMark svg{width:25px;height:25px}
+.brand h1{margin:0;font-size:19px;letter-spacing:.15px}
+.brand p{margin:4px 0 0;font-size:10px;color:#aeb3ba;letter-spacing:.95px;text-transform:uppercase}
+.nav{display:grid;gap:6px;margin-top:8px}
+.nav button{border:0;background:transparent;color:#bdc1c7;padding:12px 13px;border-radius:11px;display:flex;align-items:center;gap:11px;text-align:left;font-weight:720;transition:.16s}
+.nav button:hover{background:#32363c;color:#fff}
+.nav button.active{background:#f5f6f7;color:#262a30;box-shadow:0 7px 18px rgba(0,0,0,.16)}
+.nav svg{width:18px;height:18px;flex:0 0 18px}
+.sidebarFoot{margin-top:auto;padding:17px 10px 3px;border-top:1px solid #383c42;color:#92979f;font-size:11px;line-height:1.6}
+.sidebarFoot strong{display:block;color:#c3c7cc;font-size:11px;margin-bottom:2px}
+.main{padding:29px 32px 44px;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:flex-start;gap:16px;margin-bottom:23px;padding:0 2px}
+.titleWrap h2{margin:0;font-size:28px;letter-spacing:-.65px;font-weight:820}
+.titleWrap p{margin:7px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+.page{display:none}.page.active{display:block}
+.grid{display:grid;gap:18px;min-width:0}.grid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-soft);min-width:0}
+.panelHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:17px}
+.panelHead h3{font-size:16px;margin:0;letter-spacing:-.25px;font-weight:820}
+.panelHead p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.55}
+.sectionTitle{font-size:12px;font-weight:850;color:#454a51;margin:4px 0 12px;display:flex;align-items:center;gap:8px}
+.sectionTitle:before{content:"";width:4px;height:16px;border-radius:4px;background:#5c626a}
+.formGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field{display:grid;gap:7px;min-width:0}.field.full{grid-column:1/-1}
+.field label{font-size:11px;font-weight:800;color:#555b63;letter-spacing:.1px}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line-strong);background:#fbfbfc;color:var(--text);border-radius:11px;padding:11px 12px;outline:none;transition:.14s}
+.field input:hover,.field select:hover,.field textarea:hover{border-color:#c4c8ce}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#7e858e;box-shadow:0 0 0 3px rgba(79,85,94,.09);background:#fff}
+.field textarea{resize:vertical;font-family:"Cascadia Code","SFMono-Regular",Consolas,monospace;font-size:12px;line-height:1.6}
+.hint{font-size:10px;color:#8e949c;line-height:1.45}
+.segment{display:flex;border:1px solid var(--line);background:#f2f3f5;padding:4px;border-radius:11px;gap:4px}.segment button{border:0;background:transparent;color:#737982;border-radius:8px;padding:8px 11px;font-size:11px;font-weight:820;flex:1}.segment button.active{background:#fff;color:#2d3137;box-shadow:0 2px 8px rgba(24,28,33,.08)}
+.btn{border:0;border-radius:11px;padding:10px 14px;font-weight:800;transition:.16s;white-space:nowrap}.btn:active{transform:translateY(1px)}
+.btnPrimary{background:#30343a;color:#fff;box-shadow:0 8px 18px rgba(35,39,44,.16)}.btnPrimary:hover{background:#25292e}
+.btnSecondary{background:#fff;border:1px solid var(--line-strong);color:#454b53}.btnSecondary:hover{background:#f7f7f8}
+.btnSoft{background:#eceef1;color:#444a52}.btnDanger{background:#fff4f4;color:var(--bad);border:1px solid #edd0d0}.btnTiny{padding:7px 10px;border-radius:9px;font-size:11px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.divider{height:1px;background:var(--line);margin:16px 0}.mono{font-family:"Cascadia Code","SFMono-Regular",Consolas,monospace}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:850;white-space:nowrap}.ok{background:var(--ok-bg);color:var(--ok)}.warn{background:var(--warn-bg);color:var(--warn)}.bad{background:var(--bad-bg);color:var(--bad)}.info{background:var(--info-bg);color:var(--info)}
+.kpiRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 18px}.kpi{background:#fff;border:1px solid var(--line);border-radius:15px;padding:14px 15px;box-shadow:0 7px 19px rgba(26,30,35,.04)}.kpiLabel{font-size:9px;color:#8a9098;font-weight:850;letter-spacing:.55px}.kpiValue{font-size:20px;font-weight:900;margin:5px 0 2px;color:#333840}.kpiSub{font-size:10px;color:#979ca4}
+.topology{display:grid;grid-template-columns:1fr 72px 1fr 72px 1fr;align-items:center;gap:7px;background:#f8f8f9;border:1px dashed #d7d9dd;border-radius:16px;padding:17px}.node{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 10px;text-align:center;box-shadow:0 6px 18px rgba(20,24,28,.04);min-width:0}.node strong{display:block;font-size:12px;margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.node small{display:block;color:var(--muted);font-size:9px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nodeIcon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;margin:auto;background:#eceef1;color:#4f555d}.arrow{height:2px;background:#c8cbd0;position:relative}.arrow:after{content:"";position:absolute;right:0;top:-4px;border-left:7px solid #aeb2b8;border-top:5px solid transparent;border-bottom:5px solid transparent}
+.scriptBox{background:#202329;color:#e5e7ea;border-radius:14px;padding:16px 17px;font-family:"Cascadia Code","SFMono-Regular",Consolas,monospace;font-size:11px;line-height:1.72;min-height:130px;white-space:pre-wrap;overflow:auto;overflow-wrap:anywhere;word-break:break-word;border:1px solid #2e3339;box-shadow:inset 0 1px 0 rgba(255,255,255,.025);min-width:0}.scriptComment{color:#9299a2}
+.checkList{display:grid;gap:8px;min-width:0}.checkItem{display:flex;align-items:flex-start;gap:10px;padding:10px 11px;border:1px solid var(--line);border-radius:11px;background:#fbfbfc;min-width:0}.checkIcon{width:21px;height:21px;border-radius:7px;display:grid;place-items:center;flex:0 0 21px;font-size:11px;font-weight:900}.checkIcon.ok{background:#e4f1ea}.checkIcon.warn{background:#f8ecd4}.checkIcon.bad{background:#f7e2e2}.checkItem>div:last-child{min-width:0}.checkItem strong{display:block;font-size:11px;overflow-wrap:anywhere}.checkItem span{display:block;margin-top:3px;color:var(--muted);font-size:9px;line-height:1.45;overflow-wrap:anywhere;word-break:break-word}
+.empty{display:grid;place-items:center;text-align:center;min-height:155px;color:#92979f}.empty strong{display:block;color:#555b63;font-size:12px}.empty span{display:block;font-size:10px;line-height:1.55;margin-top:5px}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px 13px}.metricTop{display:flex;align-items:center;justify-content:space-between;gap:5px}.metric strong{display:block;font-size:20px;margin-top:5px}.metric span{font-size:9px;color:var(--muted)}
+.validatorGrid{grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr);align-items:stretch}.validatorGrid>.panel{display:flex;flex-direction:column}.validatorTextarea{min-height:520px!important;max-height:680px}.validatorReportBox{min-height:420px;max-height:520px;overflow:auto;padding-right:2px}
+.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:13px}.table{width:100%;border-collapse:collapse;min-width:700px}.table th{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:#6f757e;background:#f2f3f5;text-align:left;padding:10px}.table td{font-size:11px;border-top:1px solid #e7e8eb;padding:10px;background:#fff}.table tr:hover td{background:#fafafb}.fileInput{display:none}
+.bulkShell{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:18px;align-items:start;min-width:0}.bulkShell>.panel{min-width:0}.bulkIntro{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;background:#f7f7f8;border:1px solid var(--line);border-radius:12px;margin-bottom:14px}.bulkIntro strong{font-size:11px}.bulkIntro span{display:block;margin-top:3px;color:var(--muted);font-size:9px}.schemaWrap{margin-bottom:15px}.schemaHeader{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}.schemaHeader strong{font-size:11px}.schemaHeader span{font-size:9px;color:var(--muted)}.schemaStrip{display:flex;gap:6px;overflow-x:auto;padding:1px 1px 7px;scrollbar-width:thin}.schemaChip{flex:0 0 auto;border:1px solid #d9dce0;background:#fafafb;color:#5a6068;border-radius:9px;padding:7px 9px;font-size:9px;font-weight:760}.schemaChip b{display:inline-grid;place-items:center;width:17px;height:17px;margin-right:5px;border-radius:6px;background:#e9ebee;color:#555b63;font-size:8px}.bulkTextarea{min-height:355px!important;max-height:600px}.bulkResultBox{min-height:420px;max-height:620px}.bulkStatusRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}.bulkMetric{border:1px solid var(--line);border-radius:11px;background:#fafafb;padding:10px 11px}.bulkMetric span{display:block;font-size:9px;color:var(--muted)}.bulkMetric strong{display:block;font-size:18px;margin-top:3px}.bulkErrors{display:none;gap:7px;margin-bottom:12px;max-height:180px;overflow:auto;padding-right:2px}.bulkErrors.show{display:grid}.errorItem{border:1px solid #eed3d3;background:#fff7f7;border-radius:10px;padding:9px 10px;min-width:0}.errorItem strong{display:block;color:#984141;font-size:10px}.errorItem span{display:block;color:#7b6262;font-size:9px;line-height:1.5;margin-top:3px;overflow-wrap:anywhere;word-break:break-word}.bulkFootnote{font-size:9px;color:#8e949c;line-height:1.55;margin-top:8px}
+.hero{background:linear-gradient(135deg,#2f3339 0%,#41464e 62%,#575d66 100%);color:#fff;border-radius:22px;padding:23px 25px;display:grid;grid-template-columns:1.5fr .9fr;gap:20px;box-shadow:var(--shadow);position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-95px;top:-115px;background:rgba(255,255,255,.045)}.hero h3{font-size:23px;margin:0 0 8px;letter-spacing:-.35px}.hero p{margin:0;color:#d4d7dc;line-height:1.7;font-size:12px}.heroStat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;align-self:stretch}.heroCard{background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;backdrop-filter:blur(4px)}.heroCard strong{display:block;font-size:19px;margin-bottom:3px}.heroCard span{font-size:9px;color:#c9cdd2}
+.toast{position:fixed;right:25px;bottom:25px;background:#292d32;color:#fff;padding:11px 14px;border-radius:11px;box-shadow:0 16px 38px rgba(0,0,0,.2);opacity:0;transform:translateY(11px);pointer-events:none;transition:.18s;z-index:20;font-size:11px}.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:1150px){.app{grid-template-columns:84px minmax(0,1fr)}.sidebar{padding:22px 11px}.brand h1,.brand p,.nav span,.sidebarFoot{display:none}.brand{justify-content:center;padding:0 0 20px}.nav button{justify-content:center;padding:13px}.grid2,.validatorGrid,.bulkShell{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.main{padding:25px 25px 40px}.bulkTextarea{min-height:300px!important}}
+@media(max-width:760px){.app{display:block}.sidebar{position:relative;width:100%;height:auto;display:flex;flex-direction:row;align-items:center;overflow:auto;padding:10px}.brand{padding:0 9px 0 0}.brandMark{width:38px;height:38px}.nav{display:flex;margin:0;gap:5px}.nav button{min-width:44px}.main{padding:20px 14px 35px}.formGrid,.kpiRow,.summary,.bulkStatusRow{grid-template-columns:1fr 1fr}.topology{grid-template-columns:1fr;gap:9px}.arrow{height:34px;width:2px;margin:auto}.arrow:after{right:-4px;top:auto;bottom:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #aeb2b8;border-bottom:0}.heroStat{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}}
+@media(max-width:480px){.formGrid,.kpiRow,.summary,.bulkStatusRow{grid-template-columns:1fr}.panel{padding:16px}.titleWrap h2{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brandMark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#444a52" stroke-width="2"><path d="M4 7h16M5 12h14M8 17h8"/><circle cx="12" cy="12" r="9"/></svg>
+      </div>
+      <div><h1>N-ZONE Guard</h1><p>SAN ZONING ASSISTANT</p></div>
+    </div>
+    <nav class="nav">
+      <button class="active" data-page="generator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg><span>Zone Generator</span></button>
+      <button data-page="validator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Script Validator</span></button>
+      <button data-page="bulk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Bulk Builder</span></button>
+      <button data-page="master"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><span>Master Data</span></button>
+      <button data-page="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg><span>About</span></button>
+    </nav>
+    <div class="sidebarFoot"><strong>N-ZONE Guard v1.1</strong>SAN Zoning 업무지원 도구</div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="titleWrap"><h2 id="pageTitle">Zone Generator</h2><p id="pageDesc">작업 정보를 입력하면 사내 규칙에 맞춘 Zone Name과 Brocade 스크립트를 생성합니다.</p></div>
+    </div>
+
+    <section class="page active" id="page-generator">
+      <div class="kpiRow">
+        <div class="kpi"><div class="kpiLabel">ZONE NAMING</div><div class="kpiValue" id="kpiZone">자동</div><div class="kpiSub">S / D / 관리번호 / Port 반영</div></div>
+        <div class="kpi"><div class="kpiLabel">ZONING TYPE</div><div class="kpiValue" id="kpiType">PORT</div><div class="kpiSub">Port / WWPN 지원</div></div>
+        <div class="kpi"><div class="kpiLabel">PRE-CHECK</div><div class="kpiValue" id="kpiCheck">—</div><div class="kpiSub">입력값 교차 검증</div></div>
+      </div>
+
+      <div class="grid grid2">
+        <div class="panel">
+          <div class="panelHead"><div><h3>① 작업 정보</h3><p>필요한 작업 정보를 입력하면 Naming Rule과 Member를 자동 구성합니다.</p></div><span class="badge info">NH Rule Profile</span></div>
+
+          <div class="sectionTitle">기본 환경</div>
+          <div class="formGrid">
+            <div class="field"><label>스위치명</label><input id="switchName" /></div>
+            <div class="field"><label>HBA</label><select id="hba"><option value="" selected></option><option>H1</option><option>H2</option><option>H3</option><option>H4</option><option>H5</option><option>H6</option><option>H7</option><option>H8</option></select></div>
+            <div class="field"><label>서버명</label><input id="serverName" /></div>
+            <div class="field"><label>구분</label><select id="envType"><option value="" selected></option><option value="general">일반 원장</option><option value="InDR">InDR</option><option value="ReDR">ReDR</option></select></div>
+          </div>
+
+          <div class="divider"></div><div class="sectionTitle">Server</div>
+          <div class="formGrid">
+            <div class="field"><label>Server Domain ID</label><input id="serverDomain" type="number" min="0" /></div>
+            <div class="field"><label>Server Port Index (S)</label><input id="serverIndex" type="number" min="0" /></div>
+            <div class="field full"><label>Server WWPN</label><input id="serverWwpn" class="mono" /><div class="hint">WWPN Zoning 선택 시 입력합니다.</div></div>
+          </div>
+
+          <div class="divider"></div><div class="sectionTitle">Storage</div>
+          <div class="formGrid">
+            <div class="field"><label>Storage Domain ID</label><input id="storageDomain" type="number" min="0" /></div>
+            <div class="field"><label>Storage Port Index (D)</label><input id="storageIndex" type="number" min="0" /></div>
+            <div class="field"><label>Storage 관리번호</label><input id="storageId" maxlength="12" /></div>
+            <div class="field"><label>Storage Port</label><input id="storagePort" /></div>
+            <div class="field full"><label>Storage WWPN</label><input id="storageWwpn" class="mono" /><div class="hint">WWPN Zoning 선택 시 입력합니다.</div></div>
+          </div>
+
+          <div class="divider"></div><div class="sectionTitle">Zoning 방식</div>
+          <div class="segment" id="zoneTypeSegment"><button class="active" data-type="port">PORT</button><button data-type="wwpn">WWPN</button></div>
+
+          <div class="actions" style="margin-top:16px"><button class="btn btnPrimary" id="generateBtn">검증 및 Script 생성</button><button class="btn btnSecondary" id="resetBtn">초기화</button></div>
+        </div>
+
+        <div class="grid">
+          <div class="panel">
+            <div class="panelHead"><div><h3>② 구성 미리보기</h3><p>입력값이 Zone Name에 어떻게 반영되는지 실시간으로 확인합니다.</p></div><span class="badge info" id="liveBadge">대기</span></div>
+            <div class="topology">
+              <div class="node"><div class="nodeIcon"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01"/></svg></div><strong id="topoServer">SERVER</strong><small id="topoServerSub">—</small></div>
+              <div class="arrow"></div>
+              <div class="node"><div class="nodeIcon"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h8"/></svg></div><strong id="topoSwitch">SWITCH</strong><small id="topoSwitchSub">—</small></div>
+              <div class="arrow"></div>
+              <div class="node"><div class="nodeIcon"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7"/></svg></div><strong id="topoStorage">STORAGE</strong><small id="topoStorageSub">—</small></div>
+            </div>
+            <div class="divider"></div><div class="sectionTitle">생성될 Zone Name</div>
+            <div class="scriptBox" id="zonePreview">—</div>
+          </div>
+
+          <div class="panel">
+            <div class="panelHead"><div><h3>③ Pre-Check</h3><p>Naming · Index · Domain · WWPN 입력값을 Rule 기반으로 확인합니다.</p></div><span class="badge info" id="checkSummaryBadge">대기</span></div>
+            <div class="checkList" id="checkList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:18px">
+        <div class="panelHead"><div><h3>④ Generated Script</h3><p>작업계획서에 바로 붙여넣을 수 있는 형태로 생성합니다.</p></div><div class="actions"><button class="btn btnSecondary btnTiny" id="copyScriptBtn">전체 복사</button><button class="btn btnSoft btnTiny" id="downloadScriptBtn">TXT 저장</button></div></div>
+        <div class="scriptBox" id="scriptOutput">생성된 Script가 없습니다.</div>
+      </div>
+    </section>
+
+    <section class="page" id="page-validator">
+      <div class="grid validatorGrid">
+        <div class="panel">
+          <div class="panelHead"><div><h3>Script Validator</h3><p>작업계획서의 zonecreate / cfgadd / cfgenable을 붙여넣어 교차 검증합니다.</p></div><span class="badge info">Paste & Check</span></div>
+          <div class="field"><label>작업 Script</label><textarea class="validatorTextarea" id="validatorInput"></textarea></div>
+          <div class="actions" style="margin-top:14px"><button class="btn btnPrimary" id="validateBtn">Script 검증</button><button class="btn btnSecondary" id="clearValidatorBtn">지우기</button></div>
+        </div>
+        <div class="panel">
+          <div class="panelHead"><div><h3>Validation Report</h3><p>Zone Name과 Member, CFG 간 실제 일관성을 중심으로 확인합니다.</p></div><span class="badge info" id="validatorBadge">대기</span></div>
+          <div class="summary"><div class="metric"><div class="metricTop"><span>Zone</span><span class="badge info">Parsed</span></div><strong id="vZoneCount">0</strong></div><div class="metric"><div class="metricTop"><span>정상</span><span class="badge ok">PASS</span></div><strong id="vPassCount">0</strong></div><div class="metric"><div class="metricTop"><span>경고</span><span class="badge warn">WARN</span></div><strong id="vWarnCount">0</strong></div><div class="metric"><div class="metricTop"><span>오류</span><span class="badge bad">ERROR</span></div><strong id="vErrCount">0</strong></div></div>
+          <div class="checkList validatorReportBox" id="validatorReport" style="margin-top:14px"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-bulk">
+      <div class="bulkShell">
+        <div class="panel">
+          <div class="panelHead"><div><h3>Bulk Builder</h3><p>여러 건의 CSV 데이터를 한 번에 읽어 Switch별 Script로 정리합니다.</p></div><span class="badge info">Batch</span></div>
+          <div class="bulkIntro"><div><strong>데이터 행만 붙여넣으면 됩니다.</strong><span>헤더는 별도 입력하지 않아도 되며, 헤더가 포함된 CSV도 자동 인식합니다.</span></div><span class="badge info">13 Columns</span></div>
+
+          <div class="schemaWrap">
+            <div class="schemaHeader"><div><strong>CSV 열 순서</strong><span>왼쪽부터 아래 순서로 입력</span></div><button class="btn btnSecondary btnTiny" id="copyHeaderBtn">헤더 복사</button></div>
+            <div class="schemaStrip" id="schemaStrip"></div>
+          </div>
+
+          <div class="field"><label>CSV 데이터</label><textarea class="bulkTextarea" id="bulkInput"></textarea></div>
+          <div class="bulkFootnote">Port Zoning은 WWPN 열을 비워둘 수 있습니다. WWPN Zoning은 serverWWPN / storageWWPN을 입력합니다.</div>
+          <div class="actions" style="margin-top:14px"><button class="btn btnPrimary" id="bulkGenerateBtn">일괄 생성</button><button class="btn btnSecondary" id="bulkClearBtn">입력 지우기</button><label class="btn btnSecondary" for="bulkFileInput">CSV 불러오기</label><input class="fileInput" type="file" id="bulkFileInput" accept=".csv,text/csv,text/plain" /></div>
+        </div>
+
+        <div class="panel">
+          <div class="panelHead"><div><h3>Batch Result</h3><p>정상 행만 Script로 생성하고 오류 행은 별도 표시합니다.</p></div><div class="actions"><button class="btn btnSecondary btnTiny" id="copyBulkBtn">전체 복사</button><button class="btn btnSoft btnTiny" id="downloadBulkBtn">TXT 저장</button></div></div>
+          <div class="bulkStatusRow"><div class="bulkMetric"><span>입력 행</span><strong id="bulkTotalCount">0</strong></div><div class="bulkMetric"><span>생성 성공</span><strong id="bulkSuccessCount">0</strong></div><div class="bulkMetric"><span>오류</span><strong id="bulkErrorCount">0</strong></div></div>
+          <div class="bulkErrors" id="bulkErrors"></div>
+          <div class="scriptBox bulkResultBox" id="bulkOutput">생성된 Script가 없습니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-master">
+      <div class="grid grid2">
+        <div class="panel">
+          <div class="panelHead"><div><h3>Storage Master</h3><p>Storage Port · Index · WWPN 정보를 브라우저에 저장합니다.</p></div><span class="badge info">Master</span></div>
+          <div class="formGrid"><div class="field"><label>Storage ID</label><input id="mStorageId" /></div><div class="field"><label>Switch</label><input id="mSwitch" /></div><div class="field"><label>Port</label><input id="mPort" /></div><div class="field"><label>Index</label><input id="mIndex" type="number" /></div><div class="field full"><label>WWPN</label><input id="mWwpn" class="mono" /></div></div>
+          <div class="actions" style="margin-top:14px"><button class="btn btnPrimary" id="addMasterBtn">Storage 추가</button><button class="btn btnSecondary" id="exportMasterBtn">JSON 내보내기</button><label class="btn btnSecondary" for="importMasterFile">JSON 불러오기</label><input class="fileInput" type="file" id="importMasterFile" accept="application/json" /></div>
+        </div>
+        <div class="panel"><div class="panelHead"><div><h3>저장된 Storage</h3><p>등록된 Storage 연결 정보를 확인합니다.</p></div><button class="btn btnDanger btnTiny" id="clearMasterBtn">전체 삭제</button></div><div class="tableWrap"><table class="table"><thead><tr><th>ID</th><th>Switch</th><th>Port</th><th>Index</th><th>WWPN</th><th></th></tr></thead><tbody id="masterTableBody"></tbody></table></div></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-about">
+      <div class="hero"><div><h3>N-ZONE Guard</h3><p><strong>Network Zoning Operation & Naming Guard</strong><br/>SAN 조닝의 반복 작업을 자동화하고, 사람이 놓치기 쉬운 Naming · Index · WWPN · CFG 간 불일치를 사전에 탐지하는 업무지원 도구입니다.</p></div><div class="heroStat"><div class="heroCard"><strong>100%</strong><span>Offline</span></div><div class="heroCard"><strong>0</strong><span>Credential Stored</span></div><div class="heroCard"><strong>Rule</strong><span>Based Validation</span></div></div></div>
+      <div class="grid grid3" style="margin-top:18px"><div class="panel"><h3 style="margin-top:0;font-size:15px">왜 만들었나</h3><p style="color:var(--muted);line-height:1.75;font-size:12px">SAN 조닝은 규칙이 명확한 대신 작은 오타가 작업 오류로 이어질 수 있습니다. 반복 입력은 자동화하고 사전 검증을 표준화합니다.</p></div><div class="panel"><h3 style="margin-top:0;font-size:15px">무엇을 검증하나</h3><p style="color:var(--muted);line-height:1.75;font-size:12px">S/D Index와 Member 일치, 관리번호, Storage Port, WWPN 형식, cfgadd 누락, Switch_CFG 일치 여부를 확인합니다.</p></div><div class="panel"><h3 style="margin-top:0;font-size:15px">안전 설계</h3><p style="color:var(--muted);line-height:1.75;font-size:12px">Switch 자동 실행 기능을 제외하고 Script 생성과 검증에 집중하여 운영 리스크를 낮추는 구조로 설계했습니다.</p></div></div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);
+let zoneType='port';
+const pageMeta={
+  generator:['Zone Generator','작업 정보를 입력하면 사내 규칙에 맞춘 Zone Name과 Brocade 스크립트를 생성합니다.'],
+  validator:['Script Validator','작성된 작업계획서 Script를 붙여넣고 Naming · Member · CFG 관계를 자동 검증합니다.'],
+  bulk:['Bulk Builder','여러 서버의 조닝 데이터를 한 번에 입력하고 Switch별 Script로 정리합니다.'],
+  master:['Master Data','Storage Port · Index · WWPN 정보를 로컬에서 관리합니다.'],
+  about:['About N-ZONE Guard','업무 목적과 검증 원칙, 안전 설계를 확인합니다.']
+};
+
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  $('page-'+b.dataset.page).classList.add('active');
+  $('pageTitle').textContent=pageMeta[b.dataset.page][0];
+  $('pageDesc').textContent=pageMeta[b.dataset.page][1];
+}));
+
+document.querySelectorAll('#zoneTypeSegment button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#zoneTypeSegment button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  zoneType=b.dataset.type;
+  $('kpiType').textContent=zoneType.toUpperCase();
+  updateLive();
+}));
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function pad3(v){if(v===''||v==null||Number.isNaN(Number(v)))return '---';return String(v).padStart(3,'0')}
+function clean(v){return String(v??'').trim()}
+function wwpnValid(v){return /^([0-9a-fA-F]{2}:){7}[0-9a-fA-F]{2}$/.test(clean(v))}
+function storageIdValid(v){return /^[A-Za-z0-9]{4}$/.test(clean(v))}
+function getData(){return {sw:clean($('switchName').value),server:clean($('serverName').value),hba:$('hba').value,env:$('envType').value,sDom:clean($('serverDomain').value),sIdx:clean($('serverIndex').value),sWwpn:clean($('serverWwpn').value),dDom:clean($('storageDomain').value),dIdx:clean($('storageIndex').value),sid:clean($('storageId').value),sport:clean($('storagePort').value),dWwpn:clean($('storageWwpn').value),type:zoneType}}
+function hasAnyData(d){return [d.sw,d.server,d.hba,d.env,d.sDom,d.sIdx,d.sWwpn,d.dDom,d.dIdx,d.sid,d.sport,d.dWwpn].some(v=>clean(v)!=='')}
+function makeZoneName(d){if(!d.sw&&!d.server)return '';const base=[d.sw,d.server,d.hba,`S${pad3(d.sIdx)}`,`D${pad3(d.dIdx)}`,d.sid].filter(Boolean);if(d.env&&d.env!=='general')base.push(d.env);if(d.sport)base.push(d.sport);return base.join('_')}
+function buildChecks(d){
+  const checks=[];const add=(state,title,desc)=>checks.push({state,title,desc});
+  add(d.sw?'ok':'bad','Switch Name',d.sw?`${d.sw} 입력됨`:'스위치명이 필요합니다.');
+  add(d.server?'ok':'bad','Server Name',d.server?`${d.server} 입력됨`:'서버명이 필요합니다.');
+  add(d.hba?'ok':'bad','HBA',d.hba?`${d.hba} 선택됨`:'HBA를 선택해주세요.');
+  add(d.env?'ok':'bad','구분',d.env?(d.env==='general'?'일반 원장':d.env):'구분을 선택해주세요.');
+  add(d.sIdx!==''&&Number(d.sIdx)>=0?'ok':'bad','Server Index',d.sIdx!==''?`S${pad3(d.sIdx)}`:'Server Port Index가 필요합니다.');
+  add(d.dIdx!==''&&Number(d.dIdx)>=0?'ok':'bad','Storage Index',d.dIdx!==''?`D${pad3(d.dIdx)}`:'Storage Port Index가 필요합니다.');
+  add(storageIdValid(d.sid)?'ok':'bad','Storage 관리번호',storageIdValid(d.sid)?`${d.sid} · 4자리 형식 정상`:'Serial 끝 4자리 관리번호가 필요합니다.');
+  add(d.sport?'ok':'bad','Storage Port',d.sport?`${d.sport} 입력됨`:'Storage Port가 필요합니다.');
+  if(d.type==='port'){
+    add(d.sDom!==''&&Number(d.sDom)>=0?'ok':'bad','Server Domain',d.sDom!==''?`Domain ${d.sDom}`:'Server Domain ID가 필요합니다.');
+    add(d.dDom!==''&&Number(d.dDom)>=0?'ok':'bad','Storage Domain',d.dDom!==''?`Domain ${d.dDom}`:'Storage Domain ID가 필요합니다.');
+  }else{
+    add(wwpnValid(d.sWwpn)?'ok':'bad','Server WWPN',wwpnValid(d.sWwpn)?'WWPN 형식 정상':'xx:xx:xx:xx:xx:xx:xx:xx 형식이 필요합니다.');
+    add(wwpnValid(d.dWwpn)?'ok':'bad','Storage WWPN',wwpnValid(d.dWwpn)?'WWPN 형식 정상':'xx:xx:xx:xx:xx:xx:xx:xx 형식이 필요합니다.');
+  }
+  return checks;
+}
+function updateLive(){
+  const d=getData(), z=makeZoneName(d), any=hasAnyData(d);
+  $('topoServer').textContent=d.server||'SERVER';
+  $('topoServerSub').textContent=(d.hba||d.sIdx!=='')?`${d.hba||'HBA'} · S${pad3(d.sIdx)}`:'—';
+  $('topoSwitch').textContent=d.sw||'SWITCH';
+  $('topoSwitchSub').textContent=(d.sDom||d.dDom)?`Domain ${d.sDom||'—'} / ${d.dDom||'—'}`:'—';
+  $('topoStorage').textContent=d.sid||'STORAGE';
+  $('topoStorageSub').textContent=(d.dIdx!==''||d.sport)?`D${pad3(d.dIdx)} · ${d.sport||'—'}`:'—';
+  $('zonePreview').textContent=z||'—';
+  if(!any){renderChecks([]);$('kpiCheck').textContent='—';$('liveBadge').className='badge info';$('liveBadge').textContent='대기';return;}
+  const checks=buildChecks(d);renderChecks(checks);$('kpiCheck').textContent=checks.length;
+  const bad=checks.filter(x=>x.state==='bad').length;$('liveBadge').className=`badge ${bad?'warn':'ok'}`;$('liveBadge').textContent=bad?'입력 중':'정상';
+}
+function renderChecks(checks){
+  const box=$('checkList');box.innerHTML='';
+  if(!checks.length){box.innerHTML='<div class="empty"><div><strong>입력 대기</strong><span>작업 정보를 입력하면 검증 항목이 표시됩니다.</span></div></div>';$('checkSummaryBadge').className='badge info';$('checkSummaryBadge').textContent='대기';return;}
+  checks.forEach(c=>{const div=document.createElement('div');div.className='checkItem';div.innerHTML=`<div class="checkIcon ${c.state}">${c.state==='ok'?'✓':c.state==='warn'?'!':'×'}</div><div><strong>${escapeHtml(c.title)}</strong><span>${escapeHtml(c.desc)}</span></div>`;box.appendChild(div)});
+  const bad=checks.filter(x=>x.state==='bad').length;$('checkSummaryBadge').className=`badge ${bad?'bad':'ok'}`;$('checkSummaryBadge').textContent=bad?`${bad} ERROR`:'READY';
+}
+function generate(){
+  const d=getData(),checks=buildChecks(d),bad=checks.filter(x=>x.state==='bad').length;updateLive();
+  if(bad){$('scriptOutput').textContent=`${bad}개의 입력 오류가 있습니다.\nPre-Check 항목을 확인해주세요.`;toast('입력값을 다시 확인해주세요.');return}
+  const zone=makeZoneName(d),cfg=`${d.sw}_CFG`;
+  const member=d.type==='port'?`${d.sDom},${Number(d.sIdx)};${d.dDom},${Number(d.dIdx)}`:`${d.sWwpn};${d.dWwpn}`;
+  const script=`# 1. Zone Create\nzonecreate "${zone}","${member}"\n\n# 2. CFG Add\ncfgadd "${cfg}","${zone}"\n\n# 3. Verification\nzoneshow *${d.server}*\ncfgshow\n\n# 4. Activation\ncfgenable "${cfg}"`;
+  $('scriptOutput').textContent=script;toast('Script가 생성되었습니다.');
+}
+['switchName','serverName','hba','envType','serverDomain','serverIndex','serverWwpn','storageDomain','storageIndex','storageId','storagePort','storageWwpn'].forEach(id=>$(id).addEventListener('input',updateLive));
+$('generateBtn').addEventListener('click',generate);
+$('resetBtn').addEventListener('click',()=>{
+  ['switchName','serverName','serverDomain','serverIndex','serverWwpn','storageDomain','storageIndex','storageId','storagePort','storageWwpn'].forEach(id=>$(id).value='');
+  $('hba').value='';$('envType').value='';$('scriptOutput').textContent='생성된 Script가 없습니다.';updateLive();
+});
+$('copyScriptBtn').addEventListener('click',()=>copyText($('scriptOutput').innerText,'Script를 복사했습니다.'));
+$('downloadScriptBtn').addEventListener('click',()=>downloadText('nzone_script.txt',$('scriptOutput').innerText));
+function downloadText(name,text){const a=document.createElement('a');const url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500)}
+async function copyText(text,success){try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text)}else{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}toast(success||'복사했습니다.')}catch{toast('복사 권한이 없습니다.')}}
+function escapeHtml(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+
+function validateScript(){
+  const text=$('validatorInput').value, lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean), zones=new Map(),cfgadds=[],enables=[];
+  const report=[];let warn=0,err=0,pass=0;const add=(state,title,desc)=>{report.push({state,title,desc});if(state==='bad')err++;else if(state==='warn')warn++;else pass++};
+  for(const line of lines){let m=line.match(/^zonecreate\s+"([^"]+)"\s*,\s*"([^"]+)"/i);if(m){zones.set(m[1],m[2]);continue}m=line.match(/^cfgadd\s+"([^"]+)"\s*,\s*"([^"]+)"/i);if(m){cfgadds.push({cfg:m[1],zone:m[2]});continue}m=line.match(/^cfgenable\s+"([^"]+)"/i);if(m){enables.push(m[1]);continue}}
+  if(!zones.size)add('bad','zonecreate 미탐지','유효한 zonecreate 명령을 찾지 못했습니다.');
+  for(const [name,member] of zones){
+    const p=parseZoneName(name);if(!p){add('bad',name,'Zone Name 형식을 해석할 수 없습니다.');continue}
+    if(/^\d+,\d+;\d+,\d+$/.test(member)){
+      const [a,b]=member.split(';');const [sd,si]=a.split(',').map(Number),[dd,di]=b.split(',').map(Number);
+      if(si!==p.sIdx)add('bad',name,`S${pad3(p.sIdx)} ↔ 실제 Server Index ${si} 불일치`);
+      if(di!==p.dIdx)add('bad',name,`D${pad3(p.dIdx)} ↔ 실제 Storage Index ${di} 불일치`);
+      if(si===p.sIdx&&di===p.dIdx)add('ok',name,`Port Member 일치 · ${sd},${si};${dd},${di}`);
+    }else{
+      const parts=member.split(';').map(x=>x.trim());if(parts.length!==2||!parts.every(wwpnValid))add('bad',name,'WWPN Member 형식이 올바르지 않습니다.');else add('ok',name,'WWPN Member 형식 정상');
+    }
+    const related=cfgadds.filter(x=>x.zone===name);
+    if(!related.length)add('bad',name,'해당 Zone의 cfgadd가 없습니다.');else related.forEach(x=>{const expected=`${p.sw}_CFG`;x.cfg===expected?add('ok',name,`CFG 일치 · ${x.cfg}`):add('bad',name,`CFG 불일치 · Expected ${expected}, Actual ${x.cfg}`)});
+  }
+  for(const x of cfgadds)if(!zones.has(x.zone))add('bad',x.zone,'cfgadd에 존재하지만 zonecreate가 없습니다.');
+  for(const e of enables){const has=cfgadds.some(x=>x.cfg===e);has?add('ok',e,'cfgenable 대상 CFG가 cfgadd와 연결되어 있습니다.'):add('warn',e,`cfgenable은 있으나 ${e}에 대한 cfgadd를 찾지 못했습니다.`)}
+  renderValidator(report,zones.size,pass,warn,err);
+}
+function parseZoneName(name){const m=name.match(/^([^_]+)_(.+?)_(H\d+)_S(\d+)_D(\d+)_([A-Za-z0-9]{4})(?:_(InDR|ReDR))?_(.+)$/);if(!m)return null;return{sw:m[1],server:m[2],hba:m[3],sIdx:Number(m[4]),dIdx:Number(m[5]),sid:m[6],env:m[7]||'general',sport:m[8]}}
+function renderValidator(report,zones,pass,warn,err){
+  $('vZoneCount').textContent=zones;$('vPassCount').textContent=pass;$('vWarnCount').textContent=warn;$('vErrCount').textContent=err;
+  const b=$('validatorBadge');b.className=`badge ${err?'bad':warn?'warn':report.length?'ok':'info'}`;b.textContent=err?`${err} ERROR`:warn?`${warn} WARN`:report.length?'PASS':'대기';
+  const box=$('validatorReport');box.innerHTML='';
+  if(!report.length){box.innerHTML='<div class="empty"><div><strong>검증 결과 없음</strong><span>작업 Script를 입력하고 검증 버튼을 눌러주세요.</span></div></div>';return}
+  report.forEach(r=>{const d=document.createElement('div');d.className='checkItem';d.innerHTML=`<div class="checkIcon ${r.state}">${r.state==='ok'?'✓':r.state==='warn'?'!':'×'}</div><div><strong>${escapeHtml(r.title)}</strong><span>${escapeHtml(r.desc)}</span></div>`;box.appendChild(d)});
+}
+$('validateBtn').addEventListener('click',validateScript);
+$('clearValidatorBtn').addEventListener('click',()=>{$('validatorInput').value='';renderValidator([],0,0,0,0)});
+
+const fixedHeaders=['switch','server','hba','sDomain','sIndex','dDomain','dIndex','storageId','env','storagePort','type','serverWWPN','storageWWPN'];
+const schemaLabels=['Switch','Server','HBA','S Domain','S Index','D Domain','D Index','Storage ID','구분','Storage Port','Type','Server WWPN','Storage WWPN'];
+function renderSchema(){const box=$('schemaStrip');box.innerHTML='';schemaLabels.forEach((label,i)=>{const chip=document.createElement('div');chip.className='schemaChip';chip.innerHTML=`<b>${i+1}</b>${label}`;box.appendChild(chip)})}
+function parseCsvLine(line){const result=[];let cur='',quoted=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(quoted&&line[i+1]==='"'){cur+='"';i++}else quoted=!quoted}else if(ch===','&&!quoted){result.push(cur.trim());cur=''}else cur+=ch}result.push(cur.trim());return result}
+function normalizeHeader(v){return clean(v).replace(/\s+/g,'').toLowerCase()}
+function isHeaderRow(cells){const n=cells.map(normalizeHeader);return n.includes('switch')&&n.includes('server')&&(n.includes('hba')||n.includes('sdomain'))}
+function validateBulkRow(r,rowNo){
+  const errors=[];const req=(key,label)=>{if(!clean(r[key]))errors.push(`${label} 누락`)};
+  req('switch','Switch');req('server','Server');req('hba','HBA');req('sIndex','S Index');req('dIndex','D Index');req('storageId','Storage ID');req('storagePort','Storage Port');
+  if(r.sIndex!==''&&!/^\d+$/.test(r.sIndex))errors.push('S Index 숫자 형식 오류');
+  if(r.dIndex!==''&&!/^\d+$/.test(r.dIndex))errors.push('D Index 숫자 형식 오류');
+  if(r.storageId&&!storageIdValid(r.storageId))errors.push('Storage ID는 4자리여야 함');
+  const type=(clean(r.type)||'port').toLowerCase();
+  if(!['port','wwpn'].includes(type))errors.push('Type은 port 또는 wwpn');
+  if(type==='port'){
+    req('sDomain','S Domain');req('dDomain','D Domain');
+    if(r.sDomain&&!/^\d+$/.test(r.sDomain))errors.push('S Domain 숫자 형식 오류');
+    if(r.dDomain&&!/^\d+$/.test(r.dDomain))errors.push('D Domain 숫자 형식 오류');
+  }else{
+    if(!wwpnValid(r.serverWWPN))errors.push('Server WWPN 형식 오류');
+    if(!wwpnValid(r.storageWWPN))errors.push('Storage WWPN 형식 오류');
+  }
+  if(r.env&&!['general','InDR','ReDR'].includes(r.env))errors.push('구분은 general / InDR / ReDR');
+  return errors.map(msg=>({rowNo,msg}));
+}
+function renderBulkErrors(errors){const box=$('bulkErrors');box.innerHTML='';if(!errors.length){box.classList.remove('show');return}box.classList.add('show');errors.forEach(e=>{const d=document.createElement('div');d.className='errorItem';d.innerHTML=`<strong>${e.rowNo}행 확인 필요</strong><span>${escapeHtml(e.msg)}</span>`;box.appendChild(d)})}
+function setBulkCounts(total,success,error){$('bulkTotalCount').textContent=total;$('bulkSuccessCount').textContent=success;$('bulkErrorCount').textContent=error}
+function generateBulk(){
+  const raw=$('bulkInput').value;const lines=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  if(!lines.length){setBulkCounts(0,0,0);renderBulkErrors([]);$('bulkOutput').textContent='생성된 Script가 없습니다.';toast('CSV 데이터를 입력해주세요.');return}
+  let firstCells=parseCsvLine(lines[0]);let headers=fixedHeaders.slice(),dataLines=lines,startLine=1;
+  if(isHeaderRow(firstCells)){headers=firstCells.map(x=>clean(x));dataLines=lines.slice(1);startLine=2}
+  const groups={};const errors=[];let success=0;
+  dataLines.forEach((line,idx)=>{
+    const vals=parseCsvLine(line);const r={};headers.forEach((h,i)=>r[h]=clean(vals[i]??''));
+    fixedHeaders.forEach(h=>{if(!(h in r))r[h]=''});
+    const rowNo=idx+startLine;const rowErrors=validateBulkRow(r,rowNo);if(rowErrors.length){errors.push(...rowErrors);return}
+    const d={sw:r.switch,server:r.server,hba:r.hba,env:r.env||'general',sDom:r.sDomain,sIdx:r.sIndex,sWwpn:r.serverWWPN,dDom:r.dDomain,dIdx:r.dIndex,sid:r.storageId,sport:r.storagePort,dWwpn:r.storageWWPN,type:(r.type||'port').toLowerCase()};
+    const zone=makeZoneName(d);const member=d.type==='wwpn'?`${d.sWwpn};${d.dWwpn}`:`${d.sDom},${Number(d.sIdx)};${d.dDom},${Number(d.dIdx)}`;
+    (groups[d.sw]??=[]).push({zone,member});success++;
+  });
+  let out='';for(const [sw,items] of Object.entries(groups)){
+    out+=`# ${sw} - Zone Create\n`;items.forEach(x=>out+=`zonecreate "${x.zone}","${x.member}"\n`);
+    out+=`\n# ${sw} - CFG Add\n`;items.forEach(x=>out+=`cfgadd "${sw}_CFG","${x.zone}"\n`);
+    out+=`\ncfgenable "${sw}_CFG"\n\n`;
+  }
+  $('bulkOutput').textContent=out.trim()||'생성된 Script가 없습니다.';setBulkCounts(dataLines.length,success,errors.length);renderBulkErrors(errors);
+  toast(errors.length?`정상 ${success}건 · 오류 ${errors.length}건`:`${success}건의 Script를 생성했습니다.`);
+}
+$('bulkGenerateBtn').addEventListener('click',generateBulk);
+$('bulkClearBtn').addEventListener('click',()=>{$('bulkInput').value='';$('bulkOutput').textContent='생성된 Script가 없습니다.';setBulkCounts(0,0,0);renderBulkErrors([])});
+$('copyHeaderBtn').addEventListener('click',()=>copyText(fixedHeaders.join(','),'CSV 헤더를 복사했습니다.'));
+$('copyBulkBtn').addEventListener('click',()=>copyText($('bulkOutput').innerText,'Batch Script를 복사했습니다.'));
+$('downloadBulkBtn').addEventListener('click',()=>downloadText('nzone_bulk_script.txt',$('bulkOutput').innerText));
+$('bulkFileInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{$('bulkInput').value=String(reader.result||'');toast('CSV 파일을 불러왔습니다.')};reader.readAsText(f);e.target.value=''});
+
+const masterKey='nzone_storage_master_v1';
+function getMasters(){try{return JSON.parse(localStorage.getItem(masterKey)||'[]')}catch{return[]}}
+function setMasters(v){localStorage.setItem(masterKey,JSON.stringify(v));renderMasters()}
+function renderMasters(){
+  const body=$('masterTableBody'),data=getMasters();body.innerHTML='';
+  if(!data.length){body.innerHTML='<tr><td colspan="6" style="text-align:center;color:#90959d;padding:24px">저장된 Storage 정보가 없습니다.</td></tr>';return}
+  data.forEach((m,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td><strong>${escapeHtml(m.id)}</strong></td><td>${escapeHtml(m.sw)}</td><td>${escapeHtml(m.port)}</td><td>${escapeHtml(m.index)}</td><td class="mono">${escapeHtml(m.wwpn||'-')}</td><td><button class="btn btnDanger btnTiny" data-del="${i}">삭제</button></td>`;body.appendChild(tr)});
+  body.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{const d=getMasters();d.splice(Number(b.dataset.del),1);setMasters(d)}));
+}
+$('addMasterBtn').addEventListener('click',()=>{const m={id:clean($('mStorageId').value),sw:clean($('mSwitch').value),port:clean($('mPort').value),index:clean($('mIndex').value),wwpn:clean($('mWwpn').value)};if(!m.id||!m.sw||!m.port||m.index===''){toast('Storage ID, Switch, Port, Index를 입력해주세요.');return}const d=getMasters();d.push(m);setMasters(d);toast('Storage Master에 저장했습니다.')});
+$('clearMasterBtn').addEventListener('click',()=>{if(confirm('저장된 Master Data를 모두 삭제하시겠습니까?'))setMasters([])});
+$('exportMasterBtn').addEventListener('click',()=>downloadText('nzone_storage_master.json',JSON.stringify(getMasters(),null,2)));
+$('importMasterFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{try{const d=JSON.parse(reader.result);if(!Array.isArray(d))throw 0;setMasters(d);toast('Master Data를 불러왔습니다.')}catch{toast('올바른 JSON 파일이 아닙니다.')}};reader.readAsText(f);e.target.value=''});
+
+renderSchema();renderMasters();renderValidator([],0,0,0,0);renderBulkErrors([]);updateLive();
+</script>
+</body>
+</html>
